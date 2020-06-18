@@ -45,7 +45,7 @@ async function createSighting(sighting) {
 
 export default function App() {
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: "AIzaSyBhJJclc7sbhdI1I6b8IxHIEEXLDgGmLrw",
+    googleMapsApiKey: "NEED-A-KEY",
     libraries,
   });
 
