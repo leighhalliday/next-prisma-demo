@@ -29,14 +29,14 @@ export default function Query() {
     onMutate: (newData) => {
       queryCache.cancelQueries("sightings");
 
-      const current = queryCache.getQueryData("sightings");
+      const snapshot = queryCache.getQueryData("sightings");
 
       queryCache.setQueryData("sightings", (prev) => [
         ...prev,
         { ...newData, id: new Date().toISOString() },
       ]);
 
-      return current;
+      return () => queryCache.setQueryData("sightings", snapshot);
     },
     onError: (error, newData, rollback) => rollback(),
     onSettled: () => queryCache.refetchQueries("sightings"),
