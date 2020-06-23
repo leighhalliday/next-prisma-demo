@@ -2,14 +2,14 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { PrismaClient } from "@prisma/client";
 
 export default async function (req: NextApiRequest, res: NextApiResponse) {
-  const { sighting } = req.body;
+  const { sighting: sightingData } = req.body;
   const prisma = new PrismaClient({ log: ["query"] });
 
   try {
     const newSighting = await prisma.sighting.create({
       data: {
-        latitude: sighting.latitude,
-        longitude: sighting.longitude,
+        latitude: sightingData.latitude,
+        longitude: sightingData.longitude,
       },
     });
 

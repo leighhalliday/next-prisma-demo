@@ -1,16 +1,8 @@
 import React from "react";
-import {
-  GoogleMap,
-  useLoadScript,
-  Marker,
-  InfoWindow,
-} from "@react-google-maps/api";
-import { formatRelative, parseISO } from "date-fns";
+import { GoogleMap, useLoadScript, Marker } from "@react-google-maps/api";
 import { useQuery, useMutation, queryCache } from "react-query";
-
+import { Search, Locate, AlertWindow, Header } from "../components";
 import mapStyles from "../mapStyles";
-import Search from "../components/Search";
-import Locate from "../components/Locate";
 
 const libraries = ["places"];
 const mapContainerStyle = {
@@ -27,13 +19,13 @@ const center = {
   lng: -79.3832,
 };
 
-async function fetchSightings() {
+async function fetchSightingsRequest() {
   const response = await fetch("/api/sightings");
   const { sightings } = await response.json();
   return sightings;
 }
 
-async function createSighting(sighting) {
+async function createSightingRequest(sighting) {
   const response = await fetch("/api/sightings/create", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -43,18 +35,8 @@ async function createSighting(sighting) {
   return newSighting;
 }
 
-export default function App() {
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: "NEED-A-KEY",
-    libraries,
-  });
-
-  const { data: markers, status, error } = useQuery(
-    "sightings",
-    fetchSightings
-  );
-
-  const [mutate] = useMutation(createSighting, {
+function useCreateSighting() {
+  return useMutation(createSightingRequest, {
     onMutate: (newSighting) => {
       queryCache.cancelQueries("sightings");
 
@@ -67,41 +49,40 @@ export default function App() {
 
       return () => queryCache.setQueryData("sightings", snapshot);
     },
-    onError: (error, newSighting, rollback) => rollback(),
+    onError: (_error, _newSighting, rollback) => rollback(),
     onSettled: () => queryCache.refetchQueries("sightings"),
   });
+}
 
+export default function App() {
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    libraries,
+  });
+  const { data: sightings } = useQuery("sightings", fetchSightingsRequest);
+  const [mutate] = useCreateSighting();
   const [selected, setSelected] = React.useState(null);
-
   const onMapClick = React.useCallback((e) => {
     mutate({
       latitude: e.latLng.lat(),
       longitude: e.latLng.lng(),
     });
   }, []);
-
   const mapRef = React.useRef();
   const onMapLoad = React.useCallback((map) => {
     mapRef.current = map;
   }, []);
-
   const panTo = React.useCallback(({ lat, lng }) => {
     mapRef.current.panTo({ lat, lng });
     mapRef.current.setZoom(14);
   }, []);
 
   if (loadError) return "Error";
-  if (!isLoaded) return "Loading...";
+  if (!isLoaded) return "Loading map...";
 
   return (
-    <div>
-      <h1>
-        Bears{" "}
-        <span role="img" aria-label="tent">
-          ⛺️
-        </span>
-      </h1>
-
+    <>
+      <Header />
       <Locate panTo={panTo} />
       <Search panTo={panTo} />
 
@@ -114,14 +95,12 @@ export default function App() {
         onClick={onMapClick}
         onLoad={onMapLoad}
       >
-        {Array.isArray(markers) &&
-          markers.map((marker) => (
+        {Array.isArray(sightings) &&
+          sightings.map((sighting) => (
             <Marker
-              key={marker.id}
-              position={{ lat: marker.latitude, lng: marker.longitude }}
-              onClick={() => {
-                setSelected(marker);
-              }}
+              key={sighting.id}
+              position={{ lat: sighting.latitude, lng: sighting.longitude }}
+              onClick={() => setSelected(sighting)}
               icon={{
                 url: `/bear.svg`,
                 origin: new window.google.maps.Point(0, 0),
@@ -131,28 +110,10 @@ export default function App() {
             />
           ))}
 
-        {selected ? (
-          <InfoWindow
-            position={{ lat: selected.latitude, lng: selected.longitude }}
-            onCloseClick={() => {
-              setSelected(null);
-            }}
-          >
-            <div>
-              <h2>
-                <span role="img" aria-label="bear">
-                  🐻
-                </span>{" "}
-                Alert
-              </h2>
-              <p>
-                Spotted{" "}
-                {formatRelative(parseISO(selected.createdAt), new Date())}
-              </p>
-            </div>
-          </InfoWindow>
-        ) : null}
+        {selected && (
+          <AlertWindow selected={selected} close={() => setSelected(null)} />
+        )}
       </GoogleMap>
-    </div>
+    </>
   );
 }
