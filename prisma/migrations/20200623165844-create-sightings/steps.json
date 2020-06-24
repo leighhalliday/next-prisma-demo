@@ -42,6 +42,17 @@
           "model": "Sighting",
           "field": "id"
         },
+        "directive": "id"
+      }
+    },
+    {
+      "tag": "CreateDirective",
+      "location": {
+        "path": {
+          "tag": "Field",
+          "model": "Sighting",
+          "field": "id"
+        },
         "directive": "default"
       }
     },
@@ -58,17 +69,6 @@
       },
       "argument": "",
       "value": "autoincrement()"
-    },
-    {
-      "tag": "CreateDirective",
-      "location": {
-        "path": {
-          "tag": "Field",
-          "model": "Sighting",
-          "field": "id"
-        },
-        "directive": "id"
-      }
     },
     {
       "tag": "CreateField",

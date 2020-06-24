@@ -50,7 +50,7 @@ function useCreateSighting() {
       return () => queryCache.setQueryData("sightings", snapshot);
     },
     onError: (_error, _newSighting, rollback) => rollback(),
-    onSettled: () => queryCache.refetchQueries("sightings"),
+    onSettled: () => queryCache.invalidateQueries("sightings"),
   });
 }
 
@@ -59,14 +59,20 @@ export default function App() {
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
     libraries,
   });
-  const { data: sightings } = useQuery("sightings", fetchSightingsRequest);
-  const [mutate] = useCreateSighting();
+
+  const [sightings, setSightings] = React.useState([]);
+
   const [selected, setSelected] = React.useState(null);
   const onMapClick = React.useCallback((e) => {
-    mutate({
-      latitude: e.latLng.lat(),
-      longitude: e.latLng.lng(),
-    });
+    setSightings((prev) => [
+      ...prev,
+      {
+        id: new Date().toISOString(),
+        latitude: e.latLng.lat(),
+        longitude: e.latLng.lng(),
+        createdAt: new Date().toISOString(),
+      },
+    ]);
   }, []);
   const mapRef = React.useRef();
   const onMapLoad = React.useCallback((map) => {

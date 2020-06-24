@@ -7,9 +7,7 @@ export default async function (req: NextApiRequest, res: NextApiResponse) {
   try {
     await prisma.sighting.deleteMany({});
 
-    res.json({
-      success: true,
-    });
+    res.json({ success: true });
   } catch (e) {
     res.status(500);
     res.json({ error: "Error clearing sightings" });

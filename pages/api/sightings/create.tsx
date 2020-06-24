@@ -13,10 +13,10 @@ export default async function (req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    res.json({
-      sighting: newSighting,
-    });
+    res.status(201);
+    res.json({ sighting: newSighting });
   } catch (e) {
+    console.error(e.message);
     res.status(500);
     res.json({ error: "Error creating sighting" });
   } finally {
