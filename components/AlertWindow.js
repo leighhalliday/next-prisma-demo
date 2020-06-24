@@ -2,13 +2,11 @@ import React from "react";
 import { InfoWindow } from "@react-google-maps/api";
 import { formatRelative, parseISO } from "date-fns";
 
-export default function AlertWindow({ selected, setSelected }) {
+export default function AlertWindow({ selected, close }) {
   return (
     <InfoWindow
       position={{ lat: selected.latitude, lng: selected.longitude }}
-      onCloseClick={() => {
-        setSelected(null);
-      }}
+      onCloseClick={() => close()}
     >
       <div>
         <h2>
