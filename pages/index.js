@@ -21,35 +21,47 @@ const center = {
 
 async function fetchSightingsRequest() {
   const response = await fetch("/api/sightings");
-  const { sightings } = await response.json();
+  const data = await response.json();
+  const { sightings } = data;
   return sightings;
 }
 
-async function createSightingRequest(sighting) {
+async function createSightingRequest(sightingData) {
   const response = await fetch("/api/sightings/create", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sighting }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ sighting: sightingData }),
   });
-  const { sighting: newSighting } = await response.json();
-  return newSighting;
+  const data = await response.json();
+  const { sighting } = data;
+  return sighting;
 }
 
 function useCreateSighting() {
   return useMutation(createSightingRequest, {
-    onMutate: (newSighting) => {
+    onMutate: (sightingData) => {
+      // 1) cancel queries
       queryCache.cancelQueries("sightings");
 
+      // 2) save snapshot
       const snapshot = queryCache.getQueryData("sightings");
 
-      queryCache.setQueryData("sightings", (previous) => [
-        ...previous,
-        { ...newSighting, id: new Date().toISOString() },
+      // 3) optimistically update cache
+      queryCache.setQueryData("sightings", (prev) => [
+        ...prev,
+        {
+          id: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          ...sightingData,
+        },
       ]);
 
+      // 4) return rollback function which reset cache back to snapshot
       return () => queryCache.setQueryData("sightings", snapshot);
     },
-    onError: (_error, _newSighting, rollback) => rollback(),
+    onError: (error, sightingData, rollback) => rollback(),
     onSettled: () => queryCache.invalidateQueries("sightings"),
   });
 }
@@ -59,21 +71,19 @@ export default function App() {
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
     libraries,
   });
-
-  const [sightings, setSightings] = React.useState([]);
-
   const [selected, setSelected] = React.useState(null);
+
+  const { data: sightings } = useQuery("sightings", fetchSightingsRequest);
+
+  const [createSighting] = useCreateSighting();
+
   const onMapClick = React.useCallback((e) => {
-    setSightings((prev) => [
-      ...prev,
-      {
-        id: new Date().toISOString(),
-        latitude: e.latLng.lat(),
-        longitude: e.latLng.lng(),
-        createdAt: new Date().toISOString(),
-      },
-    ]);
+    createSighting({
+      latitude: e.latLng.lat(),
+      longitude: e.latLng.lng(),
+    });
   }, []);
+
   const mapRef = React.useRef();
   const onMapLoad = React.useCallback((map) => {
     mapRef.current = map;

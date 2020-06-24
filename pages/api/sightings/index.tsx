@@ -6,7 +6,6 @@ export default async function (req: NextApiRequest, res: NextApiResponse) {
 
   try {
     const sightings = await prisma.sighting.findMany();
-
     res.status(200);
     res.json({ sightings });
   } catch (e) {
