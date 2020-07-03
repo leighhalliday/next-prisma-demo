@@ -1,6 +1,7 @@
 import React from "react";
 import { GoogleMap, useLoadScript, Marker } from "@react-google-maps/api";
 import { useQuery, useMutation, queryCache } from "react-query";
+import Head from "next/head";
 import { Search, Locate, AlertWindow, Header } from "../components";
 import mapStyles from "../mapStyles";
 
@@ -98,6 +99,11 @@ export default function App() {
 
   return (
     <>
+      <Head>
+        <title>Bears</title>
+        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+      </Head>
+
       <Header />
       <Locate panTo={panTo} />
       <Search panTo={panTo} />
