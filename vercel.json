@@ -1,10 +1,10 @@
 {
   "env": {
-    "DATABASE_URL": "@next_prisma_database_url"
+    "DATABASE_URL": "@next-prisma-database-url"
   },
   "build": {
     "env": {
-      "DATABASE_URL": "@next_prisma_database_url"
+      "DATABASE_URL": "@next-prisma-database-url"
     }
   }
 }
