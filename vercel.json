@@ -1,6 +1,7 @@
 {
   "env": {
-    "DATABASE_URL": "@next-prisma-database-url"
+    "DATABASE_URL": "@next-prisma-database-url",
+    "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY": "@next-prisma-google-maps-api-key"
   },
   "build": {
     "env": {
